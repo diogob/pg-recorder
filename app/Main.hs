@@ -1,7 +1,10 @@
 module Main where
 
 import Protolude
-import ActRecorder
+import ActRecorder.Config
 
 main :: IO ()
-main = someFunc
+main = do
+  conf <- readOptions
+  let dbConfig = configDatabase conf
+  putStrLn dbConfig
