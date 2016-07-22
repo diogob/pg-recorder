@@ -7,14 +7,32 @@ For more information on how to write Haddock comments check the user guide:
 <https://www.haskell.org/haddock/doc/html/index.html>
 -}
 module ActRecorder
-    ( someFunc
+    ( listenSession
     ) where
 
 import ActRecorder.Prelude
+import ActRecorder.Config
+import qualified Database.PostgreSQL.LibPQ as PQ
 
--- | Prints someFunc
---
--- >>> someFunc 10
--- someFunc
-someFunc :: IO ()
-someFunc = putStrLn ("someFunc" :: Text)
+listenSession :: AppConfig -> IO ()
+listenSession conf = do
+  pqCon <- PQ.connectdb $ toS pgSettings
+  listen pqCon
+  waitForNotifications pqCon
+  where
+    waitForNotifications = forever . fetch
+    listen con = void $ PQ.exec con "LISTEN frontend"
+    pgSettings = configDatabase conf
+    fetch con = do
+      mNotification <- PQ.notifies con
+      case mNotification of
+        Nothing -> do
+          mfd <- PQ.socket con
+          case mfd of
+            Nothing  -> panic "Error checking for PostgreSQL notifications"
+            Just fd -> do
+              (waitRead, _) <- threadWaitReadSTM fd
+              atomically waitRead
+              void $ PQ.consumeInput con
+        Just notification ->
+          putStrLn $ PQ.notifyExtra notification

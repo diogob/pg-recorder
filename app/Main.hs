@@ -1,10 +1,16 @@
 module Main where
 
-import Protolude
-import ActRecorder.Config
+import           ActRecorder
+import           ActRecorder.Config
+import           Protolude
+
+import           System.IO                 (BufferMode (..), hSetBuffering)
 
 main :: IO ()
 main = do
+  hSetBuffering stdout LineBuffering
+  hSetBuffering stdin  LineBuffering
+  hSetBuffering stderr NoBuffering
+
   conf <- readOptions
-  let dbConfig = configDatabase conf
-  putStrLn dbConfig
+  listenSession conf
