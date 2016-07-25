@@ -10,3 +10,9 @@ To start recording just connect to the same database where the PostgREST-WS back
 This will open a database session listening in the same channel used byt Act frontend and 
 will store every payload received in an appropriate table using the user identifier 
 provided by the JWT.
+
+## Development
+
+To run the tests using stack:
+
+    $ stack test act-recorder
