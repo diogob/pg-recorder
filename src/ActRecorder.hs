@@ -14,8 +14,8 @@ import ActRecorder.Prelude
 import ActRecorder.Config
 import qualified Database.PostgreSQL.LibPQ as PQ
 
-listenSession :: AppConfig -> IO ()
-listenSession conf = do
+listenSession :: AppConfig -> (ByteString -> IO ()) -> IO ()
+listenSession conf withNotification = do
   pqCon <- PQ.connectdb $ toS pgSettings
   listen pqCon
   waitForNotifications pqCon
@@ -35,4 +35,4 @@ listenSession conf = do
               atomically waitRead
               void $ PQ.consumeInput con
         Just notification ->
-          putStrLn $ PQ.notifyExtra notification
+          withNotification $ PQ.notifyExtra notification

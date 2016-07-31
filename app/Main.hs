@@ -13,4 +13,4 @@ main = do
   hSetBuffering stderr NoBuffering
 
   conf <- readOptions
-  listenSession conf
+  listenSession conf putStrLn
