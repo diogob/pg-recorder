@@ -2,9 +2,6 @@ resolver: lts-6.8
 
 packages:
 - '.'
-- location:
-    git: 'git@github.com:diogob/pasta.git'
-    commit: 'master'
 
 extra-deps:
   - optparse-text-0.1.1.0
