@@ -14,4 +14,5 @@ main = do
 
   conf <- readOptions
   notificationHandler <- dbNotificationHandler conf
+  putStrLn $ "Listening for notification on " <> configDatabase conf <> " channel: " <> channel conf
   listenSession conf notificationHandler
