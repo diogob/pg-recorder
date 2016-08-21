@@ -8,17 +8,17 @@ For more information on how to write Haddock comments check the user guide:
 -}
 module ActRecorder
     ( listenSession
-    , createPool
+    , createExecutorsPool
     ) where
 
 import ActRecorder.Prelude
 import ActRecorder.Config
-import qualified Data.Pool as P
+import Data.Pool (Pool (..), createPool)
 import qualified Database.PostgreSQL.LibPQ as PQ
 
-createPool :: AppConfig -> IO (P.Pool PQ.Connection)
-createPool conf =
-  P.createPool createResource destroyResource resourceStripes ttlInSeconds size
+createExecutorsPool :: AppConfig -> IO (Pool PQ.Connection)
+createExecutorsPool conf =
+  createPool createResource destroyResource resourceStripes ttlInSeconds size
   where
     createResource = PQ.connectdb $ toS $ configDatabase conf
     destroyResource = PQ.finish

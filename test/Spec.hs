@@ -8,9 +8,9 @@ import Test.Hspec
 main :: IO ()
 main = do
   hspec $ do
-    describe "ActRecorder.createPool" $ do
+    describe "ActRecorder.createExecutorsPool" $ do
       it "should connect and allow operations with pool" $ do
-        pool <- createPool pgSettings
+        pool <- createExecutorsPool pgSettings
         void $ withResource pool $ flip PQ.exec "LISTEN frontend"
   where
     pgSettings = AppConfig "postgres://localhost/recorder_test" "test"
