@@ -13,4 +13,4 @@ main = do
         pool <- createPool pgSettings
         void $ withResource pool $ flip PQ.exec "LISTEN frontend"
   where
-    pgSettings = AppConfig "postgres://localhost/recorder_test"
+    pgSettings = AppConfig "postgres://localhost/recorder_test" "test"

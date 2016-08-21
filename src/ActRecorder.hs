@@ -28,13 +28,14 @@ createPool conf =
 
 listenSession :: AppConfig -> (ByteString -> IO ()) -> IO ()
 listenSession conf withNotification = do
-  pqCon <- PQ.connectdb $ toS pgSettings
+  pqCon <- PQ.connectdb pgSettings
   listen pqCon
   waitForNotifications pqCon
   where
     waitForNotifications = forever . fetch
-    listen con = void $ PQ.exec con "LISTEN frontend"
-    pgSettings = configDatabase conf
+    listen con = void $ PQ.exec con ("LISTEN " <> listenChannel)
+    pgSettings = toS $ configDatabase conf
+    listenChannel = toS $ channel conf
     fetch con = do
       mNotification <- PQ.notifies con
       case mNotification of

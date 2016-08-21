@@ -14,11 +14,13 @@ import           Paths_act_recorder          (version)
 
 -- | Data type to store all command line options
 data AppConfig = AppConfig { configDatabase  :: Text
+                           , channel :: Text
                            }
 
 argParser :: Parser AppConfig
 argParser = AppConfig
   <$> argument text (help "(REQUIRED) database connection string, e.g. postgres://user:pass@host:port/db" <> metavar "DB_URL")
+  <*> textOption    (long "channel"  <> short 'c' <> help "(REQUIRED) channel to listen to notifications for async commands" <> metavar "CHANNEL")
 
 -- | User friendly version number
 prettyVersion :: Text
