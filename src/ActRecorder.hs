@@ -20,31 +20,6 @@ import qualified Database.PostgreSQL.LibPQ as PQ
 -- Given a Notification in the form of ByteString we take some IO action
 type NotificationHandler = ByteString -> IO()
 
--- | Given a set of configurations creates a database connection pool to be used in handlers that need the database
-createExecutorsPool :: AppConfig -> IO (Pool PQ.Connection)
-createExecutorsPool conf =
-  createPool createResource destroyResource resourceStripes ttlInSeconds size
-  where
-    createResource = PQ.connectdb $ toS $ configDatabase conf
-    destroyResource = PQ.finish
-    resourceStripes = 1
-    ttlInSeconds = 10
-    size = 10
-
--- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
-dispatchNotificationToDb :: Pool PQ.Connection -> ByteString -> NotificationHandler
-dispatchNotificationToDb pool listenChannel notification = void $ forkIO executeNotification
-  where
-    executeNotification = withResource pool callProcedure
-    callProcedure con = void $ PQ.exec con ("SELECT " <> listenChannel <> "('" <> notification <> "')")
-
-dbNotificationHandler :: AppConfig -> IO NotificationHandler
-dbNotificationHandler conf = do
-  pool <- createExecutorsPool conf
-  return $ dispatchNotificationToDb pool listenChannel
-  where
-    listenChannel = toS $ channel conf
-
 -- | Given a set of configurations and a way to handle notifications we loop forever fetching notifications and triggering the handler
 listenSession :: AppConfig -> NotificationHandler -> IO ()
 listenSession conf withNotification = do
@@ -69,3 +44,30 @@ listenSession conf withNotification = do
               void $ PQ.consumeInput con
         Just notification ->
           withNotification $ PQ.notifyExtra notification
+
+-- | Given a set of configurations creates a database connection pool and returns an IO database dispatcher to handle notifications
+dbNotificationHandler :: AppConfig -> IO NotificationHandler
+dbNotificationHandler conf = do
+  pool <- createExecutorsPool conf
+  return $ dispatchNotificationToDb pool listenChannel
+  where
+    listenChannel = toS $ channel conf
+
+-- | Given a set of configurations creates a database connection pool to be used in handlers that need the database
+createExecutorsPool :: AppConfig -> IO (Pool PQ.Connection)
+createExecutorsPool conf =
+  createPool createResource destroyResource resourceStripes ttlInSeconds size
+  where
+    createResource = PQ.connectdb $ toS $ configDatabase conf
+    destroyResource = PQ.finish
+    resourceStripes = 1
+    ttlInSeconds = 10
+    size = 10
+
+-- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
+dispatchNotificationToDb :: Pool PQ.Connection -> ByteString -> NotificationHandler
+dispatchNotificationToDb pool listenChannel notification = void $ forkIO executeNotification
+  where
+    executeNotification = withResource pool callProcedure
+    callProcedure con = void $ PQ.exec con ("SELECT " <> listenChannel <> "('" <> notification <> "')")
+
