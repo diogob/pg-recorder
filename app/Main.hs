@@ -13,4 +13,5 @@ main = do
   hSetBuffering stderr NoBuffering
 
   conf <- readOptions
-  listenSession conf putStrLn
+  notificationHandler <- dbNotificationHandler conf
+  listenSession conf notificationHandler
