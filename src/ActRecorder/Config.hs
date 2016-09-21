@@ -4,7 +4,7 @@ module ActRecorder.Config ( prettyVersion
                           , AppConfig (..)
                           ) where
 
-import ActRecorder.Prelude
+import ActRecorder.Prelude hiding ((<>))
 
 import qualified Data.Text                   as T
 import           Data.Version                (versionBranch)

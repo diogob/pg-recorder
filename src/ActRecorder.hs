@@ -64,6 +64,8 @@ createExecutorsPool conf =
     ttlInSeconds = 10
     size = 10
 
+-- private functions
+
 -- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
 dispatchNotificationToDb :: Pool PQ.Connection -> ByteString -> NotificationHandler
 dispatchNotificationToDb pool listenChannel notification = void $ forkIO executeNotification
