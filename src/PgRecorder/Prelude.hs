@@ -4,7 +4,7 @@ Export here everything that should always be in your library scope
 For more info on what is exported by Protolude check:
 https://github.com/sdiehl/protolude/blob/master/Symbols.md
 -}
-module ActRecorder.Prelude
+module PgRecorder.Prelude
     ( module Exports
     ) where
 

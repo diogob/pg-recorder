@@ -1,7 +1,7 @@
 module Main where
 
-import           ActRecorder
-import           ActRecorder.Config
+import           PgRecorder
+import           PgRecorder.Config
 import           Protolude
 
 import           System.IO                 (BufferMode (..), hSetBuffering)

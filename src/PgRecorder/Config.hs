@@ -1,16 +1,16 @@
-module ActRecorder.Config ( prettyVersion
+module PgRecorder.Config ( prettyVersion
                           , minimumPgVersion
                           , readOptions
                           , AppConfig (..)
                           ) where
 
-import ActRecorder.Prelude hiding ((<>))
+import PgRecorder.Prelude hiding ((<>))
 
 import qualified Data.Text                   as T
 import           Data.Version                (versionBranch)
 import           Options.Applicative
 import           Options.Applicative.Text
-import           Paths_act_recorder          (version)
+import           Paths_pg_recorder          (version)
 
 -- | Data type to store all command line options
 data AppConfig = AppConfig { configDatabase  :: Text
@@ -37,8 +37,8 @@ readOptions = customExecParser parserPrefs opts
     opts = info (helper <*> argParser) $
                     fullDesc
                     <> (progDesc . toS) (
-                    ("act-recorder " :: Text)
+                    ("pg-recorder " :: Text)
                     <> prettyVersion
-                    <> (" / Records session info from Act instances" :: Text)
+                    <> (" / Records database notifications" :: Text)
                     )
     parserPrefs = prefs showHelpOnError
