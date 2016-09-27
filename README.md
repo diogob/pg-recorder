@@ -1,4 +1,4 @@
-# pg-recorder
+# pg-recorder [![CircleCI](https://circleci.com/gh/diogob/pg-recorder.svg?style=svg)](https://circleci.com/gh/diogob/pg-recorder)
 
 This will record all messages received from database notifications using user defined functions.
 
