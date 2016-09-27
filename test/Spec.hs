@@ -6,9 +6,9 @@ import qualified Database.PostgreSQL.LibPQ as PQ
 import Test.Hspec
 
 main :: IO ()
-main = do
-  hspec $ do
-    describe "PgRecorder.createExecutorsPool" $ do
+main =
+  hspec $
+    describe "PgRecorder.createExecutorsPool" $
       it "should connect and allow operations with pool" $ do
         pool <- createExecutorsPool pgSettings
         void $ withResource pool $ flip PQ.exec "LISTEN frontend"
