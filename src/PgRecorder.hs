@@ -72,4 +72,3 @@ dispatchNotificationToDb pool listenChannel notification = void $ forkIO execute
   where
     executeNotification = withResource pool callProcedure
     callProcedure con = void $ PQ.exec con ("SELECT " <> listenChannel <> "('" <> notification <> "')")
-
