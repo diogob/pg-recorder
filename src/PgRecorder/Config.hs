@@ -4,7 +4,7 @@ module PgRecorder.Config ( prettyVersion
                           , AppConfig (..)
                           ) where
 
-import PgRecorder.Prelude hiding ((<>))
+import PgRecorder.Prelude
 
 import qualified Data.Text                   as T
 import           Data.Version                (versionBranch)

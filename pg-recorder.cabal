@@ -47,7 +47,7 @@ test-suite pg-recorder-test
   build-depends:       base
                      , pg-recorder
                      , resource-pool >= 0.2.3 && < 0.3
-                     , hspec >= 2.2.3 && < 2.3
+                     , hspec >= 2.2.3 && < 2.5
                      , protolude >= 0.1.6 && < 0.2
                      , postgresql-libpq >= 0.9 && < 1.0
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
