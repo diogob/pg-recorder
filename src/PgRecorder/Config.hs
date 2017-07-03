@@ -15,12 +15,14 @@ import           Paths_pg_recorder          (version)
 -- | Data type to store all command line options
 data AppConfig = AppConfig { configDatabase  :: Text
                            , channel :: Text
+                           , dispatcherFunction :: Text
                            }
 
 argParser :: Parser AppConfig
 argParser = AppConfig
   <$> argument text (help "(REQUIRED) database connection string, e.g. postgres://user:pass@host:port/db" <> metavar "DB_URL")
   <*> textOption    (long "channel"  <> short 'c' <> help "(REQUIRED) channel to listen to notifications for async commands" <> metavar "CHANNEL")
+  <*> textOption    (long "dispatcher-function"  <> short 'f' <> help "(REQUIRED) function called to dispatch notifications for async commands" <> metavar "DISPATCHER_FUNCTION")
 
 -- | User friendly version number
 prettyVersion :: Text

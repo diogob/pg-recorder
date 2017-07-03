@@ -68,7 +68,7 @@ createExecutorsPool conf =
 
 -- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
 dispatchNotificationToDb :: Pool PQ.Connection -> ByteString -> NotificationHandler
-dispatchNotificationToDb pool listenChannel notification = void $ forkIO executeNotification
+dispatchNotificationToDb pool dispatcher notification = void $ forkIO executeNotification
   where
     executeNotification = withResource pool callProcedure
-    callProcedure con = void $ PQ.exec con ("SELECT " <> listenChannel <> "('" <> notification <> "')")
+    callProcedure con = void $ PQ.exec con ("SELECT " <> dispatcher <> "('" <> notification <> "')")
