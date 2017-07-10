@@ -11,13 +11,17 @@ module PgRecorder.Database
 
 import Protolude
 import Hasql.Pool (Pool, UsageError, use)
-import Hasql.Session (sql, run)
-import qualified Hasql.Session as S
+import Hasql.Session (query)
+import Hasql.Query (statement)
 import Hasql.Connection (Connection, withLibPQConnection)
+import qualified Hasql.Decoders as HD
+import qualified Hasql.Encoders as HE
 import qualified Database.PostgreSQL.LibPQ      as PQ
 import Data.Either.Combinators
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Search (replace)
+import Data.Functor.Contravariant (contramap)
+
 newtype Error = NotifyError Text
 
 -- | A wrapped bytestring that represents a properly escaped and quoted PostgreSQL identifier
@@ -37,12 +41,14 @@ toPgIdentifier x = PgIdentifier $ "\"" <> strictlyReplaceQuotes (trimNullChars x
     strictlyReplaceQuotes = toS . replace "\"" ("\"\"" :: ByteString)
 
 -- | Given a Hasql Pool, a channel and a message sends a notify command to the database
-callProcedure :: Pool -> PgIdentifier -> ByteString -> IO (Either Error ())
-callProcedure pool procedure mesg =
-   mapError <$> use pool (sql ("SELECT " <> fromPgIdentifier procedure <> "('" <> mesg <> "')"))
+callProcedure :: Pool -> PgIdentifier -> ByteString -> ByteString -> IO (Either Error ())
+callProcedure pool procedure channel mesg =
+   mapError <$> use pool (query (toS channel, toS mesg) callStatement)
    where
      mapError :: Either UsageError () -> Either Error ()
      mapError = mapLeft (NotifyError . show)
+     callStatement = statement ("SELECT " <> fromPgIdentifier procedure <> "($1, $2)") encoder HD.unit False
+     encoder = contramap fst (HE.value HE.text) <> contramap snd (HE.value HE.text)
 
 -- | Given a Hasql Connection and a channel sends a listen command to the database
 listen :: Connection -> PgIdentifier -> IO ()
