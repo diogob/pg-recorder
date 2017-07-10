@@ -19,11 +19,8 @@ import qualified Hasql.Pool as HP
 -- | Given a set of configurations and a way to handle notifications we loop forever fetching notifications and triggering the handler
 listenSession :: AppConfig -> (ByteString -> IO ()) -> IO ()
 listenSession conf withNotification = do
-  let con = undefined
-  waitForNotifications
-    (\_ m-> withNotification m)
-    con
-  forever $ undefined
+  let con = error "Need to open Hasql connection"
+  waitForNotifications (\_ m-> withNotification m) con
 
 -- | Given a set of configurations creates a database connection pool and returns an IO database dispatcher to handle notifications
 dbNotificationHandler :: HP.Settings -> Text -> IO (ByteString -> IO ())
