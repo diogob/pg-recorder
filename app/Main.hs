@@ -13,7 +13,7 @@ main = do
   hSetBuffering stderr NoBuffering
 
   conf <- readOptions
-  let poolSettings = undefined
+  let poolSettings = (10, 10, toS $ configDatabase conf)
       dispatcher = dispatcherFunction conf
   notificationHandler <- dbNotificationHandler poolSettings dispatcher
   putStrLn $ "Listening for notification on " <> configDatabase conf <> " using dispatcher: " <> dispatcher

@@ -15,11 +15,12 @@ import PgRecorder.Prelude
 import PgRecorder.Config
 import PgRecorder.Database
 import qualified Hasql.Pool as HP
+import qualified Hasql.Connection                     as H
 
 -- | Given a set of configurations and a way to handle notifications we loop forever fetching notifications and triggering the handler
 listenSession :: AppConfig -> (ByteString -> ByteString -> IO ()) -> IO ()
 listenSession conf withNotification = do
-  let con = error "Need to open Hasql connection"
+  con <- either (panic . show) id <$> H.acquire (toS $ configDatabase conf)
   waitForNotifications withNotification con
 
 -- | Given a set of configurations creates a database connection pool and returns an IO database dispatcher to handle notifications
