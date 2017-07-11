@@ -17,7 +17,7 @@ spec =
       let con = either (panic . show) id conOrError :: H.Connection
       notification <- liftIO newEmptyMVar
 
-      waitForNotifications (curry $ putMVar notification) con
+      void $ forkIO $ waitForNotifications (curry $ putMVar notification) con
       listen con $ toPgIdentifier "test"
 
       pool <- HP.acquire (1, 1, "postgres://localhost/postgrest_test")
