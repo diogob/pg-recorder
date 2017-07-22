@@ -21,6 +21,7 @@ import qualified Hasql.Connection                     as H
 listenSession :: AppConfig -> (ByteString -> ByteString -> IO ()) -> IO ()
 listenSession conf withNotification = do
   con <- either (panic . show) id <$> H.acquire (toS $ configDatabase conf)
+  listen con $ toPgIdentifier . toS $ channel conf
   waitForNotifications withNotification con
 
 -- | Given a set of configurations creates a database connection pool and returns an IO database dispatcher to handle notifications
