@@ -33,6 +33,11 @@ dbNotificationHandler poolConfig dispatcher =
 
 -- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
 dispatchNotificationToDb :: ByteString -> HP.Pool -> ByteString -> ByteString -> IO ()
-dispatchNotificationToDb dispatcher pool chan notification = void $ withAsync executeNotification wait
+dispatchNotificationToDb dispatcher pool chan notification =
+  void $ async executeNotification
   where
-    executeNotification = either (panic "error calling dispatcher") id <$> callProcedure pool (toPgIdentifier dispatcher) chan notification
+    executeNotification = do
+      r <- callProcedure pool (toPgIdentifier dispatcher) chan notification
+      case r of
+        Left e -> print e
+        _ -> return ()

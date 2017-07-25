@@ -22,7 +22,7 @@ import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Search (replace)
 import Data.Functor.Contravariant (contramap)
 
-newtype Error = NotifyError Text
+newtype Error = NotifyError Text deriving Show
 
 -- | A wrapped bytestring that represents a properly escaped and quoted PostgreSQL identifier
 newtype PgIdentifier = PgIdentifier ByteString deriving (Show)
