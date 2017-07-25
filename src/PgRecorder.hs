@@ -9,66 +9,35 @@ For more information on how to write Haddock comments check the user guide:
 module PgRecorder
     ( listenSession
     , dbNotificationHandler
-    , createExecutorsPool
     ) where
 
 import PgRecorder.Prelude
 import PgRecorder.Config
-import Data.Pool (Pool (..), createPool, withResource)
-import qualified Database.PostgreSQL.LibPQ as PQ
-
--- Given a Notification in the form of ByteString we take some IO action
-type NotificationHandler = ByteString -> IO()
+import PgRecorder.Database
+import qualified Hasql.Pool as HP
+import qualified Hasql.Connection                     as H
 
 -- | Given a set of configurations and a way to handle notifications we loop forever fetching notifications and triggering the handler
-listenSession :: AppConfig -> NotificationHandler -> IO ()
+listenSession :: AppConfig -> (ByteString -> ByteString -> IO ()) -> IO ()
 listenSession conf withNotification = do
-  pqCon <- PQ.connectdb pgSettings
-  listen pqCon
-  waitForNotifications pqCon
-  where
-    waitForNotifications = forever . fetch
-    listen con = void $ PQ.exec con ("LISTEN " <> listenChannel)
-    pgSettings = toS $ configDatabase conf
-    listenChannel = toS $ channel conf
-    fetch con = do
-      mNotification <- PQ.notifies con
-      case mNotification of
-        Nothing -> do
-          mfd <- PQ.socket con
-          case mfd of
-            Nothing  -> panic "Error checking for PostgreSQL notifications"
-            Just fd -> do
-              (waitRead, _) <- threadWaitReadSTM fd
-              atomically waitRead
-              void $ PQ.consumeInput con
-        Just notification ->
-          withNotification $ PQ.notifyExtra notification
+  con <- either (panic . show) id <$> H.acquire (toS $ configDatabase conf)
+  listen con $ toPgIdentifier . toS $ channel conf
+  waitForNotifications withNotification con
 
 -- | Given a set of configurations creates a database connection pool and returns an IO database dispatcher to handle notifications
-dbNotificationHandler :: AppConfig -> IO NotificationHandler
-dbNotificationHandler conf = do
-  pool <- createExecutorsPool conf
-  return $ dispatchNotificationToDb pool listenChannel
-  where
-    listenChannel = toS $ channel conf
-
--- | Given a set of configurations creates a database connection pool to be used in handlers that need the database
-createExecutorsPool :: AppConfig -> IO (Pool PQ.Connection)
-createExecutorsPool conf =
-  createPool createResource destroyResource resourceStripes ttlInSeconds size
-  where
-    createResource = PQ.connectdb $ toS $ configDatabase conf
-    destroyResource = PQ.finish
-    resourceStripes = 1
-    ttlInSeconds = 10
-    size = 10
+dbNotificationHandler :: HP.Settings -> Text -> IO (ByteString -> ByteString -> IO ())
+dbNotificationHandler poolConfig dispatcher =
+  dispatchNotificationToDb (toS dispatcher) <$> HP.acquire poolConfig
 
 -- private functions
 
 -- | Given a pool of database connections and a handler dispatches the handler to be executed in its own thread
-dispatchNotificationToDb :: Pool PQ.Connection -> ByteString -> NotificationHandler
-dispatchNotificationToDb pool listenChannel notification = void $ forkIO executeNotification
+dispatchNotificationToDb :: ByteString -> HP.Pool -> ByteString -> ByteString -> IO ()
+dispatchNotificationToDb dispatcher pool chan notification =
+  void $ async executeNotification
   where
-    executeNotification = withResource pool callProcedure
-    callProcedure con = void $ PQ.exec con ("SELECT " <> listenChannel <> "('" <> notification <> "')")
+    executeNotification = do
+      r <- callProcedure pool (toPgIdentifier dispatcher) chan notification
+      case r of
+        Left e -> print e
+        _ -> return ()
